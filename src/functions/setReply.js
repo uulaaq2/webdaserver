@@ -54,17 +54,15 @@ const setCustom = (status, message = '', data = null)  => {
 }
 
 const setError = (error) => {
-    console.log('abc ', error)
-    let reply = {
-        status: 'error',
-        message: error.message
-    }
+    let reply = {}
 
     for (let key in error) {
         if (error.hasOwnProperty(key) && (key !== 'status' && key !== 'message')) {
             reply[key] = error[key]
         }
     }
+
+    reply.status = 'error'
 
     if (config.showServerDevelopmentErrors) {
         reply.stack = error.stack
