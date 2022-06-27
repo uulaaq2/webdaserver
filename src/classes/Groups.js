@@ -11,35 +11,52 @@ class Groups {
   // start of getGroups function 
   async getGroups(req) {
     try {      
-      const { searchField, searchValue, searchType, orderByFields, order, site } = req.body.params
-      let sqlTextsTemp = ['2=2']
+      const { searchField, searchValue, searchType, listPerPage, offset, orderByFields, order, site, active } = req.body.params
+      let sqlTextsTemp = [`active=${active}`]      
       let sqlValuesTemp = []
       let sqlPreparedTemp = []
+      let sqlLimit = ''
+      let sqlOffset = ''
       let sqlOrderByFields = ''
       let sqlOrder = ''
       if (searchField && searchValue) {
         sqlPreparedTemp = prepareSearchSql(searchField, searchValue, searchType)
         sqlTextsTemp.push(sqlPreparedTemp[0])
         sqlValuesTemp.push(sqlPreparedTemp[1])
+        sqlValuesTemp.push(sqlPreparedTemp[1])
       }
       
       sqlTextsTemp = sqlTextsTemp.join(' AND ')
+
+      if (listPerPage) {
+        sqlLimit = ' LIMIT ' + listPerPage
+      }
+
+      if (offset) {
+        sqlOffset = ' OFFSET ' + offset
+      }
 
       if (orderByFields) {
         sqlOrderByFields = ' ORDER BY ' + orderByFields
         if (order) {          
           sqlOrder = ' ' + (order === 'A-Z' ? 'ASC' : 'DESC' )
         }
-      }
+      }          
       
-      const sqlGetTotalRows = 'SELECT COUNT(ID) as totalRows FROM ' + process.env.TABLE_GROUPS      
+      const sqlGetTotalRows = 'SELECT COUNT(ID) AS totalRows FROM ' + process.env.TABLE_GROUPS +
+                              ' WHERE ' +
+                              sqlTextsTemp
+
       const sqlGetResults = 'SELECT * FROM ' + process.env.TABLE_GROUPS +
                             ' WHERE ' +
                             sqlTextsTemp +
                             sqlOrderByFields +
-                            sqlOrder   
-      const sqlText = sqlGetTotalRows + ';' + sqlGetResults
+                            sqlOrder + 
+                            sqlLimit +
+                            sqlOffset
 
+      const sqlText = sqlGetTotalRows + ';' + sqlGetResults
+      
       const db = new DB() 
       const results = await db.query(sqlText, sqlValuesTemp)
 
@@ -56,9 +73,11 @@ class Groups {
       }
 
       const data = {
-          totalRows: results.results[0][0].totalRows,
-          groups: results.results[1]
+        totalRows: results.results[0][0].totalRows,
+        groups : results.results[1]
       }
+
+      console.log(sqlText)
 
       return setSuccess(data)      
     } catch (error) {
