@@ -9,9 +9,9 @@ import { prepareSearchSql } from '../functions/prepareSql'
 
 class Groups {
   // start of getGroups function 
-  async getGroups(req) {
+  async getGroups(params) {
     try {      
-      const { searchField, searchValue, searchType, listPerPage, offset, orderByFields, order, site, active } = req.body.params
+      const { searchField, searchValue, searchType, listPerPage, offset, orderByFields, order, site, active } = params
       let sqlTextsTemp = [`active=${active}`]      
       let sqlValuesTemp = []
       let sqlPreparedTemp = []
@@ -87,10 +87,9 @@ class Groups {
   }
 
   // start of newGroup function
-  async newGroup(req) {
+  async newGroup(params) {
     try {
-      const { site } = req.body
-      const { name } = req.body.params
+      const { name, site } = params
 
       const sqlQuery = new SQLQueryBuilder()
                           .insert(process.env.TABLE_GROUPS)

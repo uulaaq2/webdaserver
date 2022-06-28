@@ -10,16 +10,21 @@ const fs = require('fs')
 class User {
 
     // start of getUserByEmail function
-    async getUserByEmail(emailAddress, includePermissions = true, site) {
+    async getUserByEmail(params) {
         try {
+            const {emailAddress, includePermissions = true, site} = params
+
             const db = new DB()            
             const sqlQuery = new sqlQueryBuilder()            
                                  .select('*')
                                  .from(process.env.TABLE_USERS)
                                  .where({Email_Address: emailAddress})
                                  .get()
-            
-            const results = await db.query(sqlQuery.sqlStatement, sqlQuery.values)
+
+            const results = await db.query({ 
+                sqlStatement: sqlQuery.sqlStatement, 
+                values: sqlQuery.values 
+            })
 
             if (results.status === 'error') {
                 throw new Error(results.message)
@@ -67,8 +72,9 @@ class User {
     // end of getUserByEmail function
     }
 
-    prepareUserTokenFields(user, rememberMe) {
+    prepareUserTokenFields(params) {
         try {
+            const { user, rememberMe } = params
             const data = {
                 userTokenFields : {
                     ID: user.ID,
@@ -84,9 +90,10 @@ class User {
         }
     }
 
-    checkUserPasswordByToken(password, token) {
+    checkUserPasswordByToken(params) {
         try {
-         const verifiedToken = new Token().verifyToken(token)
+         const { password, token } = params
+         const verifiedToken = new Token().verifyToken({ token: token })
          if (verifiedToken.status === 'error') {
              throw new Error(verifiedToken.message)
          }
@@ -110,32 +117,50 @@ class User {
         }
     }
 
-    async signIn(emailAddress, password, rememberMe, site) {
+    async signIn(params) {
         try {
-            const userResult = await this.getUserByEmail(emailAddress, site)
+            console.log('sign in params', params)
+            const { emailAddress, password, rememberMe, site } = params
+            const userResult = await this.getUserByEmail({
+                emailAddress: emailAddress, 
+                site: site
+            })
 
             if (userResult.status !== 'ok') {
                 return userResult
             }
 
             let passwordVerifiedResult = new Password()
-            passwordVerifiedResult = passwordVerifiedResult.decryptPassword(password, userResult.user.Password)
+            passwordVerifiedResult = passwordVerifiedResult.decryptPassword({
+                password: password, 
+                encryptedPassword: userResult.user.Password
+            })
+
             if (passwordVerifiedResult.status !== 'ok') {
                 return passwordVerifiedResult
             }            
             
-            const userTokenFieldsResult = this.prepareUserTokenFields(userResult.user, rememberMe)
+            const userTokenFieldsResult = this.prepareUserTokenFields({
+                user: userResult.user,
+                rememberMe
+            })
             if (userTokenFieldsResult.status !== 'ok') {
                 return userTokenFieldsResult
             }
 
             let token = new Token()
-            const tokenGeneratedResult = token.generateToken(userTokenFieldsResult.userTokenFields)
+            const tokenGeneratedResult = token.generateToken({
+                payload: userTokenFieldsResult.userTokenFields
+            })
+
             if (tokenGeneratedResult.status !== 'ok') {
                 return tokenGeneratedResult
             }            
 
-            const tokenVerifiedResult = token.verifyToken(tokenGeneratedResult.token)
+            const tokenVerifiedResult = token.verifyToken({
+                token: tokenGeneratedResult.token
+            })
+
             if (tokenVerifiedResult.status !== 'ok') {
                 return tokenVerifiedResult
             }
@@ -154,10 +179,13 @@ class User {
         }
     }
 
-    async changePassword(token, newPassword) {
+    async changePassword(params) {
         try {
-            
-            const verifyTokenResult = new Token().verifyToken(token, true)
+            const { token, newPassword } = params
+            const verifyTokenResult = new Token().verifyToken({
+                token, 
+                ignoreShouldChangePassword: true
+            })
             if (verifyTokenResult.status !== 'ok') {
          
               return verifyTokenResult
@@ -251,11 +279,12 @@ class User {
     }
     
 
-    async verifyUserPassword(currentPassword, clientToken) {
+    async verifyUserPassword(params) {
         try {
+            const { currentPassword, clientToken } = params
             // Verify token and get user email
             const token = new Token()
-            const verifyTokenResult = token.verifyToken(clientToken, true)
+            const verifyTokenResult = token.verifyToken({ token: clientToken, ignoreShouldChangePassword: true})
             if (verifyTokenResult.status !== 'ok') {
                 return verifyTokenResult
             }
@@ -276,17 +305,23 @@ class User {
     // end of verifyUserPassword
     }
 
-    async verifyUserToken(clientToken, site) {
+    async verifyUserToken(params) {
         try {
+            const { token: clientToken, site } = params
             const token = new Token()
             const verifyTokenResult = token.verifyToken(clientToken)
-            const rememberMe = verifyTokenResult.decryptedData.rememberMe
-
+            
             if (verifyTokenResult.status !== 'ok') {
                 return verifyTokenResult
             }
-           
-            const getUserByEmailResult = await this.getUserByEmail(verifyTokenResult.decryptedData.Email_Address, true, site)
+
+            const rememberMe = verifyTokenResult.decryptedData.rememberMe
+
+            const getUserByEmailResult = await this.getUserByEmail({
+                emailAddress: verifyTokenResult.decryptedData.Email_Address,
+                includePermissions: true, 
+                site
+            })
 
             const data = {
                 token: clientToken,

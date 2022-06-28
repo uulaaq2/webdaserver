@@ -48,7 +48,7 @@ const setCustom = (status, message = '', data = null)  => {
         if (typeof(data) === 'array') {            
             reply.data = data
         }
-    }       
+    }    
 
     return reply
 }

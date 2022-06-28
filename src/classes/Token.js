@@ -5,8 +5,10 @@ import config from '../config'
 
 class Token {
   // start of generate token function
-  generateToken(payload = {}, expiresIn = null) {
+  generateToken(params) {
     try {      
+        const { payload = {}, expiresIn = null } = params
+
         let jwtOptions = {
           expiresIn: config.tokenExpiresIn + 'd'
         }            
@@ -28,11 +30,10 @@ class Token {
   }
 
   // start of verify token function
-  verifyToken(token, ignoreShouldChangePassword = false) {
+  verifyToken(params) {
     try {
-      if (!token) {
-        throw new Error('No token is provided')
-      }
+      console.log('verifyToken ', params)
+      const { token, ignoreShouldChangePassword = false } = params
      
       const result = jwt.verify(token, process.env.JWT_SECRET)  
       const accountExpiresAt = result.accountExpiresAt
@@ -61,10 +62,12 @@ class Token {
         decryptedData: result
       }
 
+      
+
       return setSuccess(data)
       
     } catch (error) {
-      return setCustom('invalidToken', 'Invalid token')
+      return setCustom('invalidToken', '', error)
     }
   // end of verify token function
   }

@@ -3,8 +3,9 @@ import { setError, setSuccess, setWarning } from '../functions/setReply'
 
 class Password {
   //start of encryptPassword function
-  encryptPassword(password) {
+  encryptPassword(params) {
     try {
+      const { password } = params
       const salt = bcrypt.genSaltSync(10);
       const encryptedPassword = bcrypt.hashSync(password, salt);     
 
@@ -21,8 +22,10 @@ class Password {
   }
 
   // start of decryptPassword function
-  decryptPassword(password, encryptedPassword) {
+  decryptPassword(params) {
     try {
+      const { password, encryptedPassword } = params
+
       if (bcrypt.compareSync(password, encryptedPassword)) {
         return setSuccess()
       } else {
