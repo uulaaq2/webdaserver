@@ -12,7 +12,7 @@ class User {
     // start of getUserByEmail function
     async getUserByEmail(params) {
         try {
-            const {emailAddress, includePermissions = true, site} = params
+            const {emailAddress, includePermissions = true, includeSettings = true, site} = params
 
             const db = new DB()            
             const sqlQuery = new sqlQueryBuilder()            
@@ -60,7 +60,16 @@ class User {
                 permissionsParsed = JSON.parse(permissionsRawData)
 
                 data.user.permissions = permissionsParsed
-            }                  
+            } 
+            
+            if (includeSettings) {
+                let settingsRawData, settingsParsed            
+
+                settingsRawData = fs.readFileSync('dist/app/settings.json')
+                settingsParsed = JSON.parse(settingsRawData)
+
+                data.user.settings = settingsParsed
+            }
            
             return setSuccess(data)
         // end of try
@@ -119,7 +128,6 @@ class User {
 
     async signIn(params) {
         try {
-            console.log('sign in params', params)
             const { emailAddress, password, rememberMe, site } = params
             const userResult = await this.getUserByEmail({
                 emailAddress: emailAddress, 
@@ -183,7 +191,7 @@ class User {
         try {
             const { token, newPassword } = params
             const verifyTokenResult = new Token().verifyToken({
-                token, 
+                token: token,
                 ignoreShouldChangePassword: true
             })
             if (verifyTokenResult.status !== 'ok') {
@@ -284,7 +292,7 @@ class User {
             const { currentPassword, clientToken } = params
             // Verify token and get user email
             const token = new Token()
-            const verifyTokenResult = token.verifyToken({ token: clientToken, ignoreShouldChangePassword: true})
+            const verifyTokenResult = token.verifyToken({ token: clientToken, ignoreShouldChangePassword: true })
             if (verifyTokenResult.status !== 'ok') {
                 return verifyTokenResult
             }
@@ -307,9 +315,8 @@ class User {
 
     async verifyUserToken(params) {
         try {
-            const { token: clientToken, site } = params
-            const token = new Token()
-            const verifyTokenResult = token.verifyToken(clientToken)
+            const { token, site } = params
+            const verifyTokenResult = new Token().verifyToken({ token: token })
             
             if (verifyTokenResult.status !== 'ok') {
                 return verifyTokenResult
@@ -324,7 +331,7 @@ class User {
             })
 
             const data = {
-                token: clientToken,
+                token,
                 rememberMe,
                 user: getUserByEmailResult.user
             }

@@ -1,35 +1,85 @@
-export function prepareSearchSql(key, value, type) {
+import sqlString from 'sqlstring'
+
+export function getWhereConstants(params) {
+  try {
+    const { active, site } = params
+    return ' WHERE site = ' + sqlString.escape(site) + ' AND active = ' + active      
+  } catch (error) {
+    return error
+  }
+}
+
+export function getFilterSql(key, value, type) {
   try {
     let sqlText = ''
-    let sqlValue = ''
   
     if (key && value) {        
       if (type === '' || type === 'equal') {
-        sqlText = key + '=?'
-        sqlValue = '%' + value + '%'
+        sqlText = ' AND ' + key + ' = ' + sqlString.escape(value)
       }
   
       if (type === 'startsWith') {
-        sqlText = key + ' like ?'
-        sqlValue = value + '%'
+        sqlText = 'AND ' + key + ' LIKE ' + sqlString.escape(value + '%')
       }
   
       if (type === 'includes') {
-        sqlText = key + ' like ?'
-        sqlValue = '%' + value + '%'
+        sqlText = ' AND ' + key + ' LIKE ' + sqlString.escape('%' + value + '%')
       }
   
       if (type === 'endsWith') {
-        sqlText = key + ' like ?'
-        sqlValue = value + '%'
+        sqlText = ' AND ' + key + ' LIKE ' + sqlString.escape('%' + value)
       }
     }   
 
-    return [
-      sqlText,
-      sqlValue
-    ]    
+    return sqlText    
   } catch (error) {
-    console.log(error) 
+    return error
   }
+}
+
+export function getOrderBySql(fields, order) {
+  let fieldsText = ''
+  let orderText = ''
+
+  if (fields) {
+    fieldsText = ' ORDER BY ' + fields
+  }
+
+  if (order) {
+    if (order === 'A-Z') {
+      orderText = ' ASC'
+    } else {
+      orderText = ' DESC'
+    }
+  }
+
+  return fieldsText + orderText
+}
+
+export function getLimitSql(limit) {
+  if (limit) {
+    return ' LIMIT ' + limit
+  }
+
+  return ''
+}
+
+export function getOffsetSql(offset) {
+  if (offset) {
+    return ' OFFSET ' + offset
+  }
+  
+  return ''
+}
+
+export function getSqlStatement(sql1, sql2) {
+  if (sql1) {
+    if (sql2) {
+      return sql1 + ';' + sql2
+    } else {
+      return sql1
+    }
+  }
+
+  return ''
 }

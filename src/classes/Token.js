@@ -32,9 +32,7 @@ class Token {
   // start of verify token function
   verifyToken(params) {
     try {
-      console.log('verifyToken ', params)
       const { token, ignoreShouldChangePassword = false } = params
-     
       const result = jwt.verify(token, process.env.JWT_SECRET)  
       const accountExpiresAt = result.accountExpiresAt
 

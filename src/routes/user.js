@@ -73,7 +73,6 @@ router.post('/me/generatetoken', cors(), headers, function(req, res) {
 router.post('/me/verifytoken', cors(), headers, function(req, res) {
   try {
     const main = async () => {
-      console.log(' verifytoken ', req.body)
       const user = new User()
       const verifyTokenResult = await user.verifyUserToken(req.body)
       res.send(verifyTokenResult)

@@ -1,6 +1,6 @@
 {  
   "settings": "menu",
-  "users": "admin",
-  "departments": "admin",
-  "groups": "admin"
+  "settings.users": "admin",
+  "settings.departments": "admin",
+  "settings.groups": "admin"
 }

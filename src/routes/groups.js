@@ -12,7 +12,7 @@ router.post('/get', cors(), headers, function(req, res) {
   const getGroups = async () => {
     try {
 
-      const validateRequestInitialResult = validateRequestInitial('groups', 'admin', req)
+      const validateRequestInitialResult = validateRequestInitial('groups', 'admin', req.body)
       if (validateRequestInitialResult.status !== 'ok') {
         res.send(validateRequestInitialResult)       
         
@@ -20,7 +20,7 @@ router.post('/get', cors(), headers, function(req, res) {
       }
 
       const groups = new Groups()
-      const getGroupsResult = await groups.getGroups(req)      
+      const getGroupsResult = await groups.getGroups(req.body)      
       res.send(getGroupsResult)
     } catch (error) {
       res.send(setError(error))
@@ -33,7 +33,7 @@ router.post('/get', cors(), headers, function(req, res) {
 router.post('/new', cors(), headers, function(req, res) {
   try {
 
-    const validateRequestInitialResult = validateRequestInitial('groups', 'admin', req)
+    const validateRequestInitialResult = validateRequestInitial('groups', 'admin', req.body)
     if (validateRequestInitialResult.status !== 'ok') {
       res.send(validateRequestInitialResult)   
       

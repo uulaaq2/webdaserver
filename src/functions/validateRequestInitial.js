@@ -3,15 +3,15 @@ import { setSuccess, setCustom, setError } from './setReply'
 import Token from '../classes/Token'
 const fs = require('fs')
 
-function validateRequestInitial(permissionPath, lookFor, req) {
+function validateRequestInitial(permissionPath, lookFor, params) {
   try {
-    const { token, site } = req.body
+    const { token, site } = params
 
     if (!permissionPath || !lookFor || !token || !site) {      
       throw new Error('Missing parameters')
     }
 
-    const verifyTokenResult = new Token().verifyToken(token)
+    const verifyTokenResult = new Token().verifyToken({ token })
     if (verifyTokenResult.status !== 'ok') {
       return verifyTokenResult
     }

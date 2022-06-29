@@ -5,61 +5,41 @@ import Password from '../classes/Password'
 import Token from '../classes/Token'
 import axios from 'axios'
 import config from '../config'
-import { prepareSearchSql } from '../functions/prepareSql'
+import { getWhereConstants, getFilterSql, getOrderBySql, getLimitSql, getOffsetSql, getSqlStatement } from '../functions/prepareSql'
+import sqlString from 'sqlstring'
 
 class Groups {
   // start of getGroups function 
-  async getGroups(params) {
+  async getGroups(reqBody) {
     try {      
-      const { searchField, searchValue, searchType, listPerPage, offset, orderByFields, order, site, active } = params
-      let sqlTextsTemp = [`active=${active}`]      
-      let sqlValuesTemp = []
-      let sqlPreparedTemp = []
-      let sqlLimit = ''
-      let sqlOffset = ''
-      let sqlOrderByFields = ''
-      let sqlOrder = ''
-      if (searchField && searchValue) {
-        sqlPreparedTemp = prepareSearchSql(searchField, searchValue, searchType)
-        sqlTextsTemp.push(sqlPreparedTemp[0])
-        sqlValuesTemp.push(sqlPreparedTemp[1])
-        sqlValuesTemp.push(sqlPreparedTemp[1])
-      }
-      
-      sqlTextsTemp = sqlTextsTemp.join(' AND ')
+      const { searchField, searchValue, searchType, listPerPage, offset, orderByFields, order, active } = reqBody.params
+      const { site } = reqBody      
 
-      if (listPerPage) {
-        sqlLimit = ' LIMIT ' + listPerPage
-      }
+      const sqlWhere = getWhereConstants({ active, site })
+      const sqlFilter = getFilterSql(searchField, searchValue, searchType)
+      const sqlOrder = getOrderBySql(orderByFields, order)
+      const sqlLimit = getLimitSql(listPerPage)
+      const sqlOffset = getOffsetSql(offset)
 
-      if (offset) {
-        sqlOffset = ' OFFSET ' + offset
-      }
-
-      if (orderByFields) {
-        sqlOrderByFields = ' ORDER BY ' + orderByFields
-        if (order) {          
-          sqlOrder = ' ' + (order === 'A-Z' ? 'ASC' : 'DESC' )
-        }
-      }          
-      
-      const sqlGetTotalRows = 'SELECT COUNT(ID) AS totalRows FROM ' + process.env.TABLE_GROUPS +
-                              ' WHERE ' +
-                              sqlTextsTemp
+      const sqlTotalRows = 'SELECT COUNT(ID) AS totalRows FROM ' + process.env.TABLE_GROUPS +
+                                    sqlWhere +
+                                    sqlFilter                                   
 
       const sqlGetResults = 'SELECT * FROM ' + process.env.TABLE_GROUPS +
-                            ' WHERE ' +
-                            sqlTextsTemp +
-                            sqlOrderByFields +
+                            sqlWhere +                            
+                            sqlFilter +                             
                             sqlOrder + 
                             sqlLimit +
                             sqlOffset
 
-      const sqlText = sqlGetTotalRows + ';' + sqlGetResults
-      
-      const db = new DB() 
-      const results = await db.query(sqlText, sqlValuesTemp)
+      const sqlStatement = getSqlStatement(sqlTotalRows, sqlGetResults)
 
+      const db = new DB() 
+      const results = await db.query({
+        sqlStatement
+      })
+
+      console.log(results)
       if (results.status === 'error') {
         if (results.errno !== 1062) {
           return setError(results)
@@ -77,7 +57,7 @@ class Groups {
         groups : results.results[1]
       }
 
-      console.log(sqlText)
+      console.log(data)
 
       return setSuccess(data)      
     } catch (error) {
