@@ -342,6 +342,17 @@ class User {
         }
     }
     
+    async getUserPermissions(userID) {
+        try {
+            const sqlText = 'SELECT '+
+                            'Modules.Module,'
+                            'Modules.Menu_Path',
+                            'User_Permissions.Action'
+        } catch (error) {
+            return setError(error)
+        }
+    }
+    
 // end of User class
 }
 
