@@ -31,7 +31,7 @@ class DB {
     }
 
     // raw query, gets sql statement and values, runs the query and returns the result
-    async query(params) {
+    async query(params) {        
         const { sqlStatement = '', values = [] } = params
         // start of promise
         return new Promise((resolve, reject) => {

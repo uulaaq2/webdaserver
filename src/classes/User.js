@@ -42,38 +42,40 @@ class User {
                 return setWarning('Ambigious email address')
             }           
 
-            const data = {
+            let data = {
                 user: results.results[0]
             }
-
-            if (includePermissions) {                
-                let permissionsRawData, permissionsParsed            
-                const sites = results.results[0].Sites.split(',')
-                let localSite
-                if (!site) {
-                    localSite = sites[0]
-                } else {
-                    localSite = site
-                }
-
-                permissionsRawData = fs.readFileSync(config.usersFolderPath + '/' + results.results[0].Email_Address + '/' + localSite + '/permissions.json')
-                permissionsParsed = JSON.parse(permissionsRawData)
-
-                data.user.permissions = permissionsParsed
-            } 
             
-            if (includeSettings) {
-                let settingsRawData, settingsParsed            
+            const userMenus = await db.query({
+                sqlStatement: 'SELECT * FROM get_user_permissions'            
+            })
+            
+            let menus = {}
+            let menusTemp = {}
+            let cursorTemp = {}
+            let pieces
+            userMenus.results.forEach(e => {
+                
+                pieces = e.Path.split('.')
+                //console.log(pieces)
+                for (var i=0; i < pieces.length -1; i++) {                 
+                    menusTemp = {
+                        ...menusTemp,
+                        [pieces[i]]: {}
+                    }
+                }
+                
+                menusTemp = menusTemp[pieces[0]
+                console.log(menusTemp)
 
-                settingsRawData = fs.readFileSync('dist/app/settings.json')
-                settingsParsed = JSON.parse(settingsRawData)
+            })
 
-                data.user.settings = settingsParsed
-            }
+
            
             return setSuccess(data)
         // end of try
         } catch (error) {
+            console.log(error)
             return setError(error)
         // end of catch
         }
@@ -88,7 +90,7 @@ class User {
                 userTokenFields : {
                     ID: user.ID,
                     Email_Address: user.Email_Address,
-                    Expires_At: user.Expires_At,
+                    Expires_At: user.Expires_At, 
                     rememberMe
                 }
             }
@@ -333,7 +335,8 @@ class User {
             const data = {
                 token,
                 rememberMe,
-                user: getUserByEmailResult.user
+                user: getUserByEmailResult.user,
+                menus: getUserByEmailResult.menus
             }
             
             return setCustom(getUserByEmailResult.status, getUserByEmailResult.message, data)
@@ -344,10 +347,7 @@ class User {
     
     async getUserPermissions(userID) {
         try {
-            const sqlText = 'SELECT '+
-                            'Modules.Module,'
-                            'Modules.Menu_Path',
-                            'User_Permissions.Action'
+
         } catch (error) {
             return setError(error)
         }

@@ -15,17 +15,17 @@ class Groups {
       const { searchField, searchValue, searchType, listPerPage, offset, orderByFields, order, active } = reqBody.params
       const { site } = reqBody      
 
-      const sqlWhere = getWhereConstants({ active, site })
+      const sqlWhere = getWhereConstants({ site })
       const sqlFilter = getFilterSql(searchField, searchValue, searchType)
       const sqlOrder = getOrderBySql(orderByFields, order)
       const sqlLimit = getLimitSql(listPerPage)
       const sqlOffset = getOffsetSql(offset)
 
-      const sqlTotalRows = 'SELECT COUNT(ID) AS totalRows FROM ' + process.env.TABLE_GROUPS +
+      const sqlTotalRows = 'SELECT COUNT(ID) AS totalRows FROM sys_groups' + 
                                     sqlWhere +
                                     sqlFilter                                   
 
-      const sqlGetResults = 'SELECT * FROM ' + process.env.TABLE_GROUPS +
+      const sqlGetResults = 'SELECT * FROM sys_groups' +
                             sqlWhere +                            
                             sqlFilter +                             
                             sqlOrder + 
@@ -39,7 +39,6 @@ class Groups {
         sqlStatement
       })
 
-      console.log(results)
       if (results.status === 'error') {
         if (results.errno !== 1062) {
           return setError(results)
@@ -56,9 +55,7 @@ class Groups {
         totalRows: results.results[0][0].totalRows,
         groups : results.results[1]
       }
-
-      console.log(data)
-
+      
       return setSuccess(data)      
     } catch (error) {
       setError(error)

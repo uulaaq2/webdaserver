@@ -11,7 +11,7 @@
  Target Server Version : 80027
  File Encoding         : 65001
 
- Date: 01/07/2022 15:09:32
+ Date: 04/07/2022 15:33:13
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,7 @@ CREATE TABLE `files`  (
   `Modified_At` date NULL DEFAULT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
   INDEX `File_Name`(`File_Name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3230 CHARACTER SET = utf8 COLLATE = utf8_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3229 CHARACTER SET = utf8 COLLATE = utf8_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of files
@@ -3321,12 +3321,15 @@ INSERT INTO `locations` VALUES (50, 'B40', 'No');
 DROP TABLE IF EXISTS `sys_department_permissions`;
 CREATE TABLE `sys_department_permissions`  (
   `ID` int NOT NULL AUTO_INCREMENT,
-  `Permission_Definition_ID` int NULL DEFAULT NULL,
-  `Action` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `Department_ID` int NOT NULL,
+  `Permission_Definition_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
   INDEX `Permission_Definition_ID`(`Permission_Definition_ID`) USING BTREE,
-  CONSTRAINT `sys_department_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `Permission_Definition_ID_2`(`Permission_Definition_ID`, `Department_ID`) USING BTREE,
+  INDEX `Department_ID`(`Department_ID`) USING BTREE,
+  CONSTRAINT `sys_department_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_department_permissions_ibfk_2` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_department_permissions
@@ -3342,15 +3345,34 @@ CREATE TABLE `sys_departments`  (
   `Site` varchar(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
   UNIQUE INDEX `Name_2`(`Name`, `Site`) USING BTREE,
-  INDEX `sys_departments_ibfk_1`(`Site`) USING BTREE,
   INDEX `Name`(`Name`) USING BTREE,
-  CONSTRAINT `sys_departments_ibfk_1` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE RESTRICT ON UPDATE CASCADE
+  INDEX `Site`(`Site`) USING BTREE,
+  CONSTRAINT `sys_departments_ibfk_1` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_departments
 -- ----------------------------
-INSERT INTO `sys_departments` VALUES (1, 'Department 1', 'Botany');
+
+-- ----------------------------
+-- Table structure for sys_departments_to_groups
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_departments_to_groups`;
+CREATE TABLE `sys_departments_to_groups`  (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `Department_ID` int NOT NULL,
+  `Group_ID` int NOT NULL,
+  PRIMARY KEY (`ID`) USING BTREE,
+  INDEX `User_ID`(`Department_ID`) USING BTREE,
+  INDEX `Group_ID`(`Group_ID`) USING BTREE,
+  UNIQUE INDEX `Department_ID`(`Department_ID`, `Group_ID`) USING BTREE,
+  CONSTRAINT `sys_departments_to_groups_ibfk_1` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_departments_to_groups_ibfk_2` FOREIGN KEY (`Group_ID`) REFERENCES `sys_groups` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of sys_departments_to_groups
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for sys_group_permissions
@@ -3358,19 +3380,19 @@ INSERT INTO `sys_departments` VALUES (1, 'Department 1', 'Botany');
 DROP TABLE IF EXISTS `sys_group_permissions`;
 CREATE TABLE `sys_group_permissions`  (
   `ID` int NOT NULL AUTO_INCREMENT,
-  `Permission_Definition_ID` int NULL DEFAULT NULL,
-  `Action` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `Group_ID` int NOT NULL,
+  `Permission_Definition_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
   INDEX `Permission_Definition_ID`(`Permission_Definition_ID`) USING BTREE,
-  CONSTRAINT `sys_group_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `Permission_Definition_ID_2`(`Permission_Definition_ID`) USING BTREE,
+  INDEX `Group_ID`(`Group_ID`) USING BTREE,
+  CONSTRAINT `sys_group_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_group_permissions_ibfk_2` FOREIGN KEY (`Group_ID`) REFERENCES `sys_groups` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_group_permissions
 -- ----------------------------
-INSERT INTO `sys_group_permissions` VALUES (1, 1, 'Read, Modify');
-INSERT INTO `sys_group_permissions` VALUES (2, 2, 'Read, Delete');
-INSERT INTO `sys_group_permissions` VALUES (3, 3, 'Print');
 
 -- ----------------------------
 -- Table structure for sys_groups
@@ -3380,61 +3402,56 @@ CREATE TABLE `sys_groups`  (
   `ID` int NOT NULL AUTO_INCREMENT,
   `Name` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `Site` varchar(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `Active` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`ID`) USING BTREE,
   UNIQUE INDEX `Name_2`(`Name`, `Site`) USING BTREE,
-  INDEX `sys_departments_ibfk_1`(`Site`) USING BTREE,
   INDEX `Name`(`Name`) USING BTREE,
-  CONSTRAINT `sys_groups_ibfk_1` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 349 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  INDEX `Site`(`Site`) USING BTREE,
+  CONSTRAINT `sys_groups_ibfk_1` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 348 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_groups
 -- ----------------------------
-INSERT INTO `sys_groups` VALUES (326, '123123', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (327, '23123', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (328, '12323123', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (329, '452345234', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (330, '23452345234', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (331, '32452345324', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (332, '23452345', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (333, 'dsfgdfgsdf', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (334, '13412341234123', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (335, 'dfgsdfgdsfsd', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (337, '1', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (338, '2', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (339, '3', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (340, '4', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (341, '5', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (342, '6', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (343, '7', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (344, '8', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (345, '9', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (346, '10', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (347, '11', 'Botany', 1);
-INSERT INTO `sys_groups` VALUES (348, '12', 'Botany', 1);
+INSERT INTO `sys_groups` VALUES (349, '1', 'Botany');
 
 -- ----------------------------
--- Table structure for sys_modules
+-- Table structure for sys_menus
 -- ----------------------------
-DROP TABLE IF EXISTS `sys_modules`;
-CREATE TABLE `sys_modules`  (
+DROP TABLE IF EXISTS `sys_menus`;
+CREATE TABLE `sys_menus`  (
   `ID` int NOT NULL AUTO_INCREMENT,
-  `Module` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `Menu_Path` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `Label` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `Actions` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `Path` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `Menu_Path`(`Menu_Path`) USING BTREE
+  UNIQUE INDEX `Path`(`Path`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of sys_modules
+-- Records of sys_menus
 -- ----------------------------
-INSERT INTO `sys_modules` VALUES (1, 'Settings', 'settings.groups', 'Groups', 'Read, Modify, Delete');
-INSERT INTO `sys_modules` VALUES (2, 'Settings', 'settings.users', 'Users', 'Read, Modify, Delete');
-INSERT INTO `sys_modules` VALUES (3, 'Settings', 'settings.departments', 'Departments', 'Read, Modify, Delete');
-INSERT INTO `sys_modules` VALUES (4, 'Databases', 'databases.database1', 'Database 1', 'Read, Modify, Delete, Print');
+INSERT INTO `sys_menus` VALUES (5, 'Deneme.Aaa.New');
+INSERT INTO `sys_menus` VALUES (4, 'Settings.ABC.DEF.GHI');
+INSERT INTO `sys_menus` VALUES (2, 'Settings.Departments');
+INSERT INTO `sys_menus` VALUES (3, 'Settings.Groups');
+INSERT INTO `sys_menus` VALUES (1, 'Settings.User');
+
+-- ----------------------------
+-- Table structure for sys_permission_actions
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_permission_actions`;
+CREATE TABLE `sys_permission_actions`  (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `Action` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  PRIMARY KEY (`ID`) USING BTREE,
+  INDEX `Name`(`Action`) USING BTREE,
+  UNIQUE INDEX `Name_2`(`Action`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of sys_permission_actions
+-- ----------------------------
+INSERT INTO `sys_permission_actions` VALUES (3, 'Delete');
+INSERT INTO `sys_permission_actions` VALUES (2, 'Modify');
+INSERT INTO `sys_permission_actions` VALUES (1, 'Read');
 
 -- ----------------------------
 -- Table structure for sys_permission_definitions
@@ -3442,42 +3459,27 @@ INSERT INTO `sys_modules` VALUES (4, 'Databases', 'databases.database1', 'Databa
 DROP TABLE IF EXISTS `sys_permission_definitions`;
 CREATE TABLE `sys_permission_definitions`  (
   `ID` int NOT NULL AUTO_INCREMENT,
-  `Module_ID` int NULL DEFAULT NULL,
-  `Actions` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `Menu_ID` int NOT NULL,
+  `Action_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `Module_ID`(`Module_ID`) USING BTREE,
-  CONSTRAINT `sys_permission_definitions_ibfk_1` FOREIGN KEY (`Module_ID`) REFERENCES `sys_modules` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+  UNIQUE INDEX `Path`(`Menu_ID`, `Action_ID`) USING BTREE,
+  INDEX `Action_ID`(`Action_ID`) USING BTREE,
+  CONSTRAINT `sys_permission_definitions_ibfk_1` FOREIGN KEY (`Menu_ID`) REFERENCES `sys_menus` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_permission_definitions_ibfk_2` FOREIGN KEY (`Action_ID`) REFERENCES `sys_permission_actions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_permission_definitions
 -- ----------------------------
-INSERT INTO `sys_permission_definitions` VALUES (1, 1, 'Read, Modify, Delete');
-INSERT INTO `sys_permission_definitions` VALUES (2, 2, 'Read, Modify, Delete, Print');
-INSERT INTO `sys_permission_definitions` VALUES (3, 3, 'Raad, Modify');
-INSERT INTO `sys_permission_definitions` VALUES (4, 4, 'Read. Modify, Delete');
-
--- ----------------------------
--- Table structure for sys_permissions_links
--- ----------------------------
-DROP TABLE IF EXISTS `sys_permissions_links`;
-CREATE TABLE `sys_permissions_links`  (
-  `ID` int NOT NULL AUTO_INCREMENT,
-  `User_ID` int NULL DEFAULT NULL,
-  `Department_ID` int NULL DEFAULT NULL,
-  `Group_ID` int NULL DEFAULT NULL,
-  PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `User_ID`(`User_ID`) USING BTREE,
-  INDEX `Department_ID`(`Department_ID`) USING BTREE,
-  INDEX `Group_ID`(`Group_ID`) USING BTREE,
-  CONSTRAINT `sys_permissions_links_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `sys_users` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `sys_permissions_links_ibfk_2` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `sys_permissions_links_ibfk_3` FOREIGN KEY (`Group_ID`) REFERENCES `sys_groups` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of sys_permissions_links
--- ----------------------------
+INSERT INTO `sys_permission_definitions` VALUES (12, 1, 3);
+INSERT INTO `sys_permission_definitions` VALUES (10, 3, 1);
+INSERT INTO `sys_permission_definitions` VALUES (11, 3, 2);
+INSERT INTO `sys_permission_definitions` VALUES (15, 3, 3);
+INSERT INTO `sys_permission_definitions` VALUES (13, 4, 1);
+INSERT INTO `sys_permission_definitions` VALUES (14, 4, 2);
+INSERT INTO `sys_permission_definitions` VALUES (16, 5, 1);
+INSERT INTO `sys_permission_definitions` VALUES (17, 5, 2);
+INSERT INTO `sys_permission_definitions` VALUES (18, 5, 3);
 
 -- ----------------------------
 -- Table structure for sys_sites
@@ -3502,55 +3504,25 @@ INSERT INTO `sys_sites` VALUES (2, 'Brooklyn');
 DROP TABLE IF EXISTS `sys_user_permissions`;
 CREATE TABLE `sys_user_permissions`  (
   `ID` int NOT NULL AUTO_INCREMENT,
-  `Menu_ID` int NOT NULL,
-  `Name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `Permission_Definition_ID` int NOT NULL,
+  `Site` varchar(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `Permission_Definition_ID`(`Menu_ID`) USING BTREE,
-  CONSTRAINT `sys_user_permissions_ibfk_1` FOREIGN KEY (`Menu_ID`) REFERENCES `sys_modules` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `Permission_Definition_ID`(`Permission_Definition_ID`, `Site`) USING BTREE,
+  INDEX `Site`(`Site`) USING BTREE,
+  CONSTRAINT `sys_user_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_user_permissions_ibfk_2` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_user_permissions
 -- ----------------------------
-INSERT INTO `sys_user_permissions` VALUES (5, 1, 'settings.groups.read');
-INSERT INTO `sys_user_permissions` VALUES (6, 2, 'settings.users.read');
-INSERT INTO `sys_user_permissions` VALUES (7, 2, 'settings.users.modify');
-INSERT INTO `sys_user_permissions` VALUES (8, 3, 'settings.departments.delete');
-INSERT INTO `sys_user_permissions` VALUES (9, 4, 'databases.database1.read');
-
--- ----------------------------
--- Table structure for sys_user_settings
--- ----------------------------
-DROP TABLE IF EXISTS `sys_user_settings`;
-CREATE TABLE `sys_user_settings`  (
-  `ID` int NOT NULL,
-  `Name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `Str_Value` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `Int_Value` int NULL DEFAULT NULL,
-  PRIMARY KEY (`ID`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of sys_user_settings
--- ----------------------------
-
--- ----------------------------
--- Table structure for sys_user_settings_definitions
--- ----------------------------
-DROP TABLE IF EXISTS `sys_user_settings_definitions`;
-CREATE TABLE `sys_user_settings_definitions`  (
-  `ID` int NOT NULL AUTO_INCREMENT,
-  `Module_ID` int NULL DEFAULT NULL,
-  `Str_Value` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `Int_Value` int NULL DEFAULT NULL,
-  PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `Module_ID`(`Module_ID`) USING BTREE,
-  CONSTRAINT `sys_user_settings_definitions_ibfk_1` FOREIGN KEY (`Module_ID`) REFERENCES `sys_modules` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of sys_user_settings_definitions
--- ----------------------------
+INSERT INTO `sys_user_permissions` VALUES (1, 10, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (2, 11, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (3, 12, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (4, 13, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (5, 14, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (6, 15, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (9, 16, 'Botany');
 
 -- ----------------------------
 -- Table structure for sys_users
@@ -3571,6 +3543,7 @@ CREATE TABLE `sys_users`  (
   `Salt` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '',
   `Avatar` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   `Sites` varchar(200) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL DEFAULT '',
+  `Global_Admin` tinyint(1) NULL DEFAULT 0,
   `Home_Page` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '',
   `Can_Be_Remembered` tinyint(1) NULL DEFAULT NULL,
   `Should_Change_Password` tinyint(1) NULL DEFAULT NULL,
@@ -3579,15 +3552,85 @@ CREATE TABLE `sys_users`  (
   INDEX `001-idx-users/site`(`Sites`) USING BTREE,
   INDEX `001-idx-users/name`(`Name`) USING BTREE,
   INDEX `001-idx-users/email`(`Email_Address`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_users
 -- ----------------------------
-INSERT INTO `sys_users` VALUES (1, '1c4ca4238a0', '2022-01-04 13:46:35', '2022-04-30', NULL, NULL, NULL, 'Muhittin Yendun', 'm', 'bbb', NULL, NULL, 'avatar', 'Botany', NULL, 1, 0);
-INSERT INTO `sys_users` VALUES (2, '2c81e728d9d', '2022-01-06 14:51:45', '2022-04-30', NULL, NULL, NULL, 'Muhittin Yendun2', 'ma', '1a', NULL, NULL, '', 'Botany', NULL, 1, 0);
-INSERT INTO `sys_users` VALUES (3, '3eccbc87e4b', '2022-01-07 10:28:32', '2022-04-30', NULL, NULL, NULL, 'Username Userlastname', 'aaa', '$2a$10$YlTTb6NYNj6ybyAE28XmZO7t.rgEseN8VZQeoIw7jIp/kVNg3VLqi', '111', '$2a$10$YlTTb6NYNj6ybyAE28XmZO', '', 'Botany', NULL, 1, 0);
-INSERT INTO `sys_users` VALUES (5, '5e4da3b7fbb', '2022-03-11 13:36:28', '2023-04-30', 'I.T.', NULL, NULL, 'Muhittin Yendun', 'muhittin.yendun@au.indorama.net', '$2a$10$9I/m5ynbCRC/0wKqSyIj7OL3TjScFBjbOZrimhHD8lrdodbkM7Ll6', '111', '$2a$10$9I/m5ynbCRC/0wKqSyIj7O', 'profileimage.jfif', 'Botany,Brooklyn', '/', 1, 0);
-INSERT INTO `sys_users` VALUES (6, '61679091c5a', '2023-04-21 14:16:00', '2023-04-21', NULL, NULL, NULL, 'Drawings', 'drawings', '$2a$10$YlTTb6NYNj6ybyAE28XmZO7t.rgEseN8VZQeoIw7jIp/kVNg3VLqi', '2022', '$2a$10$YlTTb6NYNj6ybyAE28XmZO', 'a', 'Botany', '/drawings', 1, 0);
+INSERT INTO `sys_users` VALUES (1, '1c4ca4238a0', '2022-01-04 13:46:35', '2022-04-30', NULL, NULL, NULL, 'Muhittin Yendun', 'm', 'bbb', NULL, NULL, 'avatar', 'Botany', 0, NULL, 1, 0);
+INSERT INTO `sys_users` VALUES (2, '2c81e728d9d', '2022-01-06 14:51:45', '2022-04-30', NULL, NULL, NULL, 'Muhittin Yendun2', 'ma', '1a', NULL, NULL, '', 'Botany', 0, NULL, 1, 0);
+INSERT INTO `sys_users` VALUES (3, '3eccbc87e4b', '2022-01-07 10:28:32', '2022-04-30', NULL, NULL, NULL, 'Username Userlastname', 'aaa', '$2a$10$YlTTb6NYNj6ybyAE28XmZO7t.rgEseN8VZQeoIw7jIp/kVNg3VLqi', '111', '$2a$10$YlTTb6NYNj6ybyAE28XmZO', '', 'Botany', 0, NULL, 1, 0);
+INSERT INTO `sys_users` VALUES (5, '5e4da3b7fbb', '2022-03-11 13:36:28', '2023-04-30', 'I.T.', NULL, NULL, 'Muhittin Yendun', 'muhittin.yendun@au.indorama.net', '$2a$10$9I/m5ynbCRC/0wKqSyIj7OL3TjScFBjbOZrimhHD8lrdodbkM7Ll6', '111', '$2a$10$9I/m5ynbCRC/0wKqSyIj7O', 'profileimage.jfif', 'Botany,Brooklyn', 1, '/', 1, 0);
+INSERT INTO `sys_users` VALUES (6, '61679091c5a', '2023-04-21 14:16:00', '2023-04-21', NULL, NULL, NULL, 'Drawings', 'drawings', '$2a$10$YlTTb6NYNj6ybyAE28XmZO7t.rgEseN8VZQeoIw7jIp/kVNg3VLqi', '2022', '$2a$10$YlTTb6NYNj6ybyAE28XmZO', 'a', 'Botany', 0, '/drawings', 1, 0);
+
+-- ----------------------------
+-- Table structure for sys_users_to_departments
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_users_to_departments`;
+CREATE TABLE `sys_users_to_departments`  (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `User_ID` int NOT NULL,
+  `Department_ID` int NOT NULL,
+  PRIMARY KEY (`ID`) USING BTREE,
+  INDEX `User_ID`(`User_ID`) USING BTREE,
+  INDEX `Group_ID`(`Department_ID`) USING BTREE,
+  UNIQUE INDEX `User_ID_2`(`User_ID`, `Department_ID`) USING BTREE,
+  CONSTRAINT `sys_users_to_departments_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `sys_users` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_users_to_departments_ibfk_2` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of sys_users_to_departments
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for sys_users_to_groups
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_users_to_groups`;
+CREATE TABLE `sys_users_to_groups`  (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `User_ID` int NULL DEFAULT NULL,
+  `Group_ID` int NULL DEFAULT NULL,
+  PRIMARY KEY (`ID`) USING BTREE,
+  UNIQUE INDEX `User_ID`(`User_ID`, `Group_ID`) USING BTREE,
+  INDEX `Group_ID`(`Group_ID`) USING BTREE,
+  CONSTRAINT `sys_users_to_groups_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `sys_users` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_users_to_groups_ibfk_2` FOREIGN KEY (`Group_ID`) REFERENCES `sys_groups` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of sys_users_to_groups
+-- ----------------------------
+
+-- ----------------------------
+-- View structure for get_department_permissions
+-- ----------------------------
+DROP VIEW IF EXISTS `get_department_permissions`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_department_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_department_permissions` join `sys_permission_definitions` on((`sys_department_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`)));
+
+-- ----------------------------
+-- View structure for get_group_permissions
+-- ----------------------------
+DROP VIEW IF EXISTS `get_group_permissions`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_group_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_group_permissions` join `sys_permission_definitions` on((`sys_group_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`)));
+
+-- ----------------------------
+-- View structure for get_user_permissions
+-- ----------------------------
+DROP VIEW IF EXISTS `get_user_permissions`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_user_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_user_permissions` join `sys_permission_definitions` on((`sys_user_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`)));
+
+-- ----------------------------
+-- Function structure for returnUserID
+-- ----------------------------
+DROP FUNCTION IF EXISTS `returnUserID`;
+delimiter ;;
+CREATE FUNCTION `returnUserID`(`UserID` int)
+ RETURNS int
+BEGIN
+	RETURN UserID;
+END
+;;
+delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;

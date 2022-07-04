@@ -2,8 +2,8 @@ import sqlString from 'sqlstring'
 
 export function getWhereConstants(params) {
   try {
-    const { active, site } = params
-    return ' WHERE site = ' + sqlString.escape(site) + ' AND active = ' + active      
+    const { site } = params
+    return ' WHERE site = ' + sqlString.escape(site)
   } catch (error) {
     return error
   }
