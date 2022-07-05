@@ -11,7 +11,7 @@
  Target Server Version : 80027
  File Encoding         : 65001
 
- Date: 04/07/2022 15:33:13
+ Date: 05/07/2022 15:23:48
 */
 
 SET NAMES utf8mb4;
@@ -3324,8 +3324,8 @@ CREATE TABLE `sys_department_permissions`  (
   `Department_ID` int NOT NULL,
   `Permission_Definition_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `Permission_Definition_ID`(`Permission_Definition_ID`) USING BTREE,
   UNIQUE INDEX `Permission_Definition_ID_2`(`Permission_Definition_ID`, `Department_ID`) USING BTREE,
+  INDEX `Permission_Definition_ID`(`Permission_Definition_ID`) USING BTREE,
   INDEX `Department_ID`(`Department_ID`) USING BTREE,
   CONSTRAINT `sys_department_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `sys_department_permissions_ibfk_2` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -3334,6 +3334,11 @@ CREATE TABLE `sys_department_permissions`  (
 -- ----------------------------
 -- Records of sys_department_permissions
 -- ----------------------------
+INSERT INTO `sys_department_permissions` VALUES (2, 2, 10);
+INSERT INTO `sys_department_permissions` VALUES (3, 2, 11);
+INSERT INTO `sys_department_permissions` VALUES (5, 3, 11);
+INSERT INTO `sys_department_permissions` VALUES (1, 2, 12);
+INSERT INTO `sys_department_permissions` VALUES (4, 2, 15);
 
 -- ----------------------------
 -- Table structure for sys_departments
@@ -3348,11 +3353,13 @@ CREATE TABLE `sys_departments`  (
   INDEX `Name`(`Name`) USING BTREE,
   INDEX `Site`(`Site`) USING BTREE,
   CONSTRAINT `sys_departments_ibfk_1` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_departments
 -- ----------------------------
+INSERT INTO `sys_departments` VALUES (2, 'Department 1', 'Botany');
+INSERT INTO `sys_departments` VALUES (3, 'Department 2', 'Botany');
 
 -- ----------------------------
 -- Table structure for sys_departments_to_groups
@@ -3363,16 +3370,18 @@ CREATE TABLE `sys_departments_to_groups`  (
   `Department_ID` int NOT NULL,
   `Group_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
+  UNIQUE INDEX `Department_ID`(`Department_ID`, `Group_ID`) USING BTREE,
   INDEX `User_ID`(`Department_ID`) USING BTREE,
   INDEX `Group_ID`(`Group_ID`) USING BTREE,
-  UNIQUE INDEX `Department_ID`(`Department_ID`, `Group_ID`) USING BTREE,
   CONSTRAINT `sys_departments_to_groups_ibfk_1` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `sys_departments_to_groups_ibfk_2` FOREIGN KEY (`Group_ID`) REFERENCES `sys_groups` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_departments_to_groups
 -- ----------------------------
+INSERT INTO `sys_departments_to_groups` VALUES (1, 2, 349);
+INSERT INTO `sys_departments_to_groups` VALUES (2, 3, 350);
 
 -- ----------------------------
 -- Table structure for sys_group_permissions
@@ -3383,8 +3392,8 @@ CREATE TABLE `sys_group_permissions`  (
   `Group_ID` int NOT NULL,
   `Permission_Definition_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
+  UNIQUE INDEX `Permission_Definition_ID_2`(`Permission_Definition_ID`, `Group_ID`) USING BTREE,
   INDEX `Permission_Definition_ID`(`Permission_Definition_ID`) USING BTREE,
-  UNIQUE INDEX `Permission_Definition_ID_2`(`Permission_Definition_ID`) USING BTREE,
   INDEX `Group_ID`(`Group_ID`) USING BTREE,
   CONSTRAINT `sys_group_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `sys_group_permissions_ibfk_2` FOREIGN KEY (`Group_ID`) REFERENCES `sys_groups` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -3393,6 +3402,10 @@ CREATE TABLE `sys_group_permissions`  (
 -- ----------------------------
 -- Records of sys_group_permissions
 -- ----------------------------
+INSERT INTO `sys_group_permissions` VALUES (2, 349, 10);
+INSERT INTO `sys_group_permissions` VALUES (3, 349, 11);
+INSERT INTO `sys_group_permissions` VALUES (1, 349, 12);
+INSERT INTO `sys_group_permissions` VALUES (6, 350, 15);
 
 -- ----------------------------
 -- Table structure for sys_groups
@@ -3407,12 +3420,13 @@ CREATE TABLE `sys_groups`  (
   INDEX `Name`(`Name`) USING BTREE,
   INDEX `Site`(`Site`) USING BTREE,
   CONSTRAINT `sys_groups_ibfk_1` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 348 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 349 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_groups
 -- ----------------------------
 INSERT INTO `sys_groups` VALUES (349, '1', 'Botany');
+INSERT INTO `sys_groups` VALUES (350, '2', 'Botany');
 
 -- ----------------------------
 -- Table structure for sys_menus
@@ -3423,13 +3437,13 @@ CREATE TABLE `sys_menus`  (
   `Path` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
   UNIQUE INDEX `Path`(`Path`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_menus
 -- ----------------------------
-INSERT INTO `sys_menus` VALUES (5, 'Deneme.Aaa.New');
-INSERT INTO `sys_menus` VALUES (4, 'Settings.ABC.DEF.GHI');
+INSERT INTO `sys_menus` VALUES (5, 'Deneme.Aaa.BBB');
+INSERT INTO `sys_menus` VALUES (4, 'Settings.ABC');
 INSERT INTO `sys_menus` VALUES (2, 'Settings.Departments');
 INSERT INTO `sys_menus` VALUES (3, 'Settings.Groups');
 INSERT INTO `sys_menus` VALUES (1, 'Settings.User');
@@ -3442,9 +3456,9 @@ CREATE TABLE `sys_permission_actions`  (
   `ID` int NOT NULL AUTO_INCREMENT,
   `Action` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
-  INDEX `Name`(`Action`) USING BTREE,
-  UNIQUE INDEX `Name_2`(`Action`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  UNIQUE INDEX `Name_2`(`Action`) USING BTREE,
+  INDEX `Name`(`Action`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_permission_actions
@@ -3466,7 +3480,7 @@ CREATE TABLE `sys_permission_definitions`  (
   INDEX `Action_ID`(`Action_ID`) USING BTREE,
   CONSTRAINT `sys_permission_definitions_ibfk_1` FOREIGN KEY (`Menu_ID`) REFERENCES `sys_menus` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `sys_permission_definitions_ibfk_2` FOREIGN KEY (`Action_ID`) REFERENCES `sys_permission_actions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_permission_definitions
@@ -3504,25 +3518,30 @@ INSERT INTO `sys_sites` VALUES (2, 'Brooklyn');
 DROP TABLE IF EXISTS `sys_user_permissions`;
 CREATE TABLE `sys_user_permissions`  (
   `ID` int NOT NULL AUTO_INCREMENT,
+  `User_ID` int NOT NULL,
   `Permission_Definition_ID` int NOT NULL,
   `Site` varchar(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
-  UNIQUE INDEX `Permission_Definition_ID`(`Permission_Definition_ID`, `Site`) USING BTREE,
+  UNIQUE INDEX `Permission_Definition_ID`(`Permission_Definition_ID`, `Site`, `User_ID`) USING BTREE,
   INDEX `Site`(`Site`) USING BTREE,
+  INDEX `User_ID`(`User_ID`) USING BTREE,
   CONSTRAINT `sys_user_permissions_ibfk_1` FOREIGN KEY (`Permission_Definition_ID`) REFERENCES `sys_permission_definitions` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `sys_user_permissions_ibfk_2` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+  CONSTRAINT `sys_user_permissions_ibfk_2` FOREIGN KEY (`Site`) REFERENCES `sys_sites` (`Name`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `sys_user_permissions_ibfk_3` FOREIGN KEY (`User_ID`) REFERENCES `sys_users` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_user_permissions
 -- ----------------------------
-INSERT INTO `sys_user_permissions` VALUES (1, 10, 'Botany');
-INSERT INTO `sys_user_permissions` VALUES (2, 11, 'Botany');
-INSERT INTO `sys_user_permissions` VALUES (3, 12, 'Botany');
-INSERT INTO `sys_user_permissions` VALUES (4, 13, 'Botany');
-INSERT INTO `sys_user_permissions` VALUES (5, 14, 'Botany');
-INSERT INTO `sys_user_permissions` VALUES (6, 15, 'Botany');
-INSERT INTO `sys_user_permissions` VALUES (9, 16, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (11, 5, 10, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (12, 5, 11, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (10, 5, 12, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (14, 5, 13, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (15, 5, 14, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (13, 5, 15, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (16, 5, 16, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (17, 5, 17, 'Botany');
+INSERT INTO `sys_user_permissions` VALUES (18, 5, 18, 'Botany');
 
 -- ----------------------------
 -- Table structure for sys_users
@@ -3572,12 +3591,12 @@ CREATE TABLE `sys_users_to_departments`  (
   `User_ID` int NOT NULL,
   `Department_ID` int NOT NULL,
   PRIMARY KEY (`ID`) USING BTREE,
+  UNIQUE INDEX `User_ID_2`(`User_ID`, `Department_ID`) USING BTREE,
   INDEX `User_ID`(`User_ID`) USING BTREE,
   INDEX `Group_ID`(`Department_ID`) USING BTREE,
-  UNIQUE INDEX `User_ID_2`(`User_ID`, `Department_ID`) USING BTREE,
   CONSTRAINT `sys_users_to_departments_ibfk_1` FOREIGN KEY (`User_ID`) REFERENCES `sys_users` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `sys_users_to_departments_ibfk_2` FOREIGN KEY (`Department_ID`) REFERENCES `sys_departments` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_users_to_departments
@@ -3601,34 +3620,86 @@ CREATE TABLE `sys_users_to_groups`  (
 -- ----------------------------
 -- Records of sys_users_to_groups
 -- ----------------------------
+INSERT INTO `sys_users_to_groups` VALUES (2, 3, 350);
+INSERT INTO `sys_users_to_groups` VALUES (1, 5, 349);
 
 -- ----------------------------
 -- View structure for get_department_permissions
 -- ----------------------------
 DROP VIEW IF EXISTS `get_department_permissions`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_department_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_department_permissions` join `sys_permission_definitions` on((`sys_department_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`)));
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_department_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_department_permissions` join `sys_permission_definitions` on((`sys_department_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`))) where (`sys_department_permissions`.`Department_ID` = `getDepartmentIDFromParam`());
+
+-- ----------------------------
+-- View structure for get_departments_to_groups_permissions
+-- ----------------------------
+DROP VIEW IF EXISTS `get_departments_to_groups_permissions`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_departments_to_groups_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from ((((`sys_departments_to_groups` join `sys_group_permissions` on((`sys_departments_to_groups`.`Group_ID` = `sys_group_permissions`.`Group_ID`))) join `sys_permission_definitions` on((`sys_group_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`))) where (`sys_departments_to_groups`.`Department_ID` = `getDepartmentIDFromParam`());
 
 -- ----------------------------
 -- View structure for get_group_permissions
 -- ----------------------------
 DROP VIEW IF EXISTS `get_group_permissions`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_group_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_group_permissions` join `sys_permission_definitions` on((`sys_group_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`)));
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_group_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_group_permissions` join `sys_permission_definitions` on((`sys_group_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`))) where (`sys_group_permissions`.`Group_ID` = `getGroupIDFromParam`());
 
 -- ----------------------------
 -- View structure for get_user_permissions
 -- ----------------------------
 DROP VIEW IF EXISTS `get_user_permissions`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_user_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_user_permissions` join `sys_permission_definitions` on((`sys_user_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`)));
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_user_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from (((`sys_user_permissions` join `sys_permission_definitions` on((`sys_user_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`))) where (`sys_user_permissions`.`User_ID` = `getUserIDFromParam`());
 
 -- ----------------------------
--- Function structure for returnUserID
+-- View structure for get_users_to_groups_permissions
 -- ----------------------------
-DROP FUNCTION IF EXISTS `returnUserID`;
+DROP VIEW IF EXISTS `get_users_to_groups_permissions`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_users_to_groups_permissions` AS select `sys_menus`.`Path` AS `Path`,`sys_permission_actions`.`Action` AS `Action` from ((((`sys_users_to_groups` join `sys_group_permissions` on((`sys_users_to_groups`.`Group_ID` = `sys_group_permissions`.`Group_ID`))) join `sys_permission_definitions` on((`sys_group_permissions`.`Permission_Definition_ID` = `sys_permission_definitions`.`ID`))) join `sys_menus` on((`sys_permission_definitions`.`Menu_ID` = `sys_menus`.`ID`))) join `sys_permission_actions` on((`sys_permission_definitions`.`Action_ID` = `sys_permission_actions`.`ID`))) where (`sys_users_to_groups`.`User_ID` = `getUserIDFromParam`());
+
+-- ----------------------------
+-- Function structure for getDepartmentIDFromParam
+-- ----------------------------
+DROP FUNCTION IF EXISTS `getDepartmentIDFromParam`;
 delimiter ;;
-CREATE FUNCTION `returnUserID`(`UserID` int)
+CREATE FUNCTION `getDepartmentIDFromParam`()
  RETURNS int
+  NO SQL 
+  DETERMINISTIC
 BEGIN
-	RETURN UserID;
+	#Routine body goes here...
+
+	RETURN @departmentID;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Function structure for getGroupIDFromParam
+-- ----------------------------
+DROP FUNCTION IF EXISTS `getGroupIDFromParam`;
+delimiter ;;
+CREATE FUNCTION `getGroupIDFromParam`()
+ RETURNS int
+  NO SQL 
+  DETERMINISTIC
+BEGIN
+	#Routine body goes here...
+
+	RETURN @groupID;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Function structure for getUserIDFromParam
+-- ----------------------------
+DROP FUNCTION IF EXISTS `getUserIDFromParam`;
+delimiter ;;
+CREATE FUNCTION `getUserIDFromParam`()
+ RETURNS int
+  NO SQL 
+  DETERMINISTIC
+BEGIN
+	#Routine body goes here...
+
+	RETURN @userID;
 END
 ;;
 delimiter ;
