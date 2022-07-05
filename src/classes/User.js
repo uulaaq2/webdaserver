@@ -5,6 +5,7 @@ import Password from '../classes/Password'
 import Token from '../classes/Token'
 import axios from 'axios'
 import config from '../config'
+import { Console } from 'console'
 const fs = require('fs')
 
 class User {
@@ -42,34 +43,45 @@ class User {
                 return setWarning('Ambigious email address')
             }           
 
-            let data = {
-                user: results.results[0]
+            const userPermissionsResult = await this.getUserPermissions(5)
+            if (userPermissionsResult.status !== 'ok') {
+                return userPermissionsResult
             }
-            
-            const userMenus = await db.query({
-                sqlStatement: 'SELECT * FROM get_user_permissions'            
-            })
-            
+            console.log(userPermissionsResult.permissions)
             let menus = {}
-            let menusTemp = {}
-            let cursorTemp = {}
+            let aaa
+            let menusTemp
+            let rowPermissions = userPermissionsResult.permissions
+            var i = -1
             let pieces
-            userMenus.results.forEach(e => {
-                
-                pieces = e.Path.split('.')
-                //console.log(pieces)
-                for (var i=0; i < pieces.length -1; i++) {                 
-                    menusTemp = {
-                        ...menusTemp,
-                        [pieces[i]]: {}
-                    }
-                }
-                
-                menusTemp = menusTemp[pieces[0]
-                console.log(menusTemp)
 
+            rowPermissions.forEach(e => {  
+                aaa = {}
+                menusTemp = aaa
+                i = i + 1
+                pieces = rowPermissions[i].Path.split('.')
+                for (var x=0; x < pieces.length -1; x++) {
+                    menusTemp = menusTemp[pieces[x]] = {}
+                    
+                }
+                menusTemp[pieces[x]] = {
+                    [rowPermissions[i].Action]: true
+                }
+                console.log('aaa ', aaa)               
+   
             })
 
+            console.log('menus ', menus.Deneme.Aaa.BBB)
+
+         
+
+            //console.log(menus)
+            
+
+            let data = {
+                user: results.results[0],
+                //menus: userPermissionsResult.permissions
+            }                 
 
            
             return setSuccess(data)
@@ -347,8 +359,44 @@ class User {
     
     async getUserPermissions(userID) {
         try {
+            const sqlSetVariables = 'SET @userID = ' + userID + ';'
+            const sqlGetUserPermissions = 'SELECT * FROM get_user_permissions'
+            const sqlGetDepartmentPermissions = 'SELECT * FROM get_department_permissions'
+            const sqlGetGroupPermissions = 'SELECT * FROM get_group_permissions'
+            const sqlGetUsersToGroupsPermissions = 'SELECT * FROM get_users_to_groups_permissions'
+            const sqlGetDepartmetsToGroupsPermissions = 'SELECT * FROM get_departments_to_groups_permissions'
 
+            let sqlStart = 'SELECT DISTINCT * FROM ('
+            let sqlBody = sqlGetUserPermissions 
+                sqlBody += ' UNION '
+                sqlBody += sqlGetDepartmentPermissions 
+                sqlBody += ' UNION '
+                sqlBody += sqlGetGroupPermissions
+                sqlBody += ' UNION '
+                sqlBody += sqlGetUsersToGroupsPermissions 
+                sqlBody += ' UNION '
+                sqlBody += sqlGetDepartmetsToGroupsPermissions
+            let sqlFinish = ') USER_PERMISSIONS'                
+                sqlFinish += ' ORDER BY Path, Action'
+
+            let sqlText = sqlSetVariables + sqlStart + sqlBody + sqlFinish
+
+            const queryResult = await new DB().query({
+                sqlStatement: sqlText,
+                values: []
+            })
+
+            if (queryResult.status !== 'ok') {
+                return queryResult
+            }
+
+            const data = {
+                permissions: queryResult.results[1]
+            }
+
+            return setSuccess(data)
         } catch (error) {
+            //console.log(error)
             return setError(error)
         }
     }
