@@ -4,9 +4,10 @@ import sqlQueryBuilder from './SQLQueryBuilder'
 import Password from '../classes/Password'
 import Token from '../classes/Token'
 import axios from 'axios'
-import config from '../config'
-import { Console } from 'console'
+import _ from 'lodash'
+
 const fs = require('fs')
+
 
 class User {
 
@@ -47,42 +48,23 @@ class User {
             if (userPermissionsResult.status !== 'ok') {
                 return userPermissionsResult
             }
-            console.log(userPermissionsResult.permissions)
+
             let menus = {}
-            let aaa
-            let menusTemp
+            var menusTemp
             let rowPermissions = userPermissionsResult.permissions
-            var i = -1
+            var i = 0
             let pieces
-
-            rowPermissions.forEach(e => {  
-                aaa = {}
-                menusTemp = aaa
-                i = i + 1
+            rowPermissions.forEach(e => {                  
                 pieces = rowPermissions[i].Path.split('.')
-                for (var x=0; x < pieces.length -1; x++) {
-                    menusTemp = menusTemp[pieces[x]] = {}
-                    
-                }
-                menusTemp[pieces[x]] = {
-                    [rowPermissions[i].Action]: true
-                }
-                console.log('aaa ', aaa)               
-   
-            })
-
-            console.log('menus ', menus.Deneme.Aaa.BBB)
-
-         
-
-            //console.log(menus)
-            
+                menusTemp = pieces.reduceRight((obj, next) => ({[next]: obj}), {[rowPermissions[i].Action]: true})
+                _.merge(menus, menusTemp)                
+                i++
+            })                       
 
             let data = {
                 user: results.results[0],
-                //menus: userPermissionsResult.permissions
+                menus
             }                 
-
            
             return setSuccess(data)
         // end of try
