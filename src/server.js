@@ -9,6 +9,7 @@ import routerHome from './routes/home'
 import routerSignIn from './routes/signin'
 import routerUser from './routes/user'
 import routerGroups from './routes/groups'
+import routerPermissions from './routes/permissions'
 
 const app = express();
 const port = process.env.APP_PORT || 3003
@@ -22,6 +23,7 @@ app.use(routerHome)
 app.use('/signin', routerSignIn)
 app.use('/user', routerUser)
 app.use('/groups', routerGroups)
+app.use('/permissions', routerPermissions)
 
 async function main(){
 

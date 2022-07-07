@@ -1,84 +1,75 @@
 import { setError, setWarning, setSuccess, setCustom } from '../functions/setReply'
 import DB from './DB'
-import SQLQueryBuilder from './SQLQueryBuilder'
 
 class Permissions {
 
-  async addUserPermissions(fields, values) {
+  async getUserPermissions(userID) {
     try {
-      const tableUserPermissions = process.env.TABLE_PERMISSION_USER    
+        const sqlSetVariables = 'SET @userID = ' + userID + ';'
+        const sqlGetUserPermissions = 'SELECT * FROM get_user_permissions'
+        const sqlGetDepartmentPermissions = 'SELECT * FROM get_department_permissions'
+        const sqlGetGroupPermissions = 'SELECT * FROM get_group_permissions'
+        const sqlGetUsersToGroupsPermissions = 'SELECT * FROM get_users_to_groups_permissions'
+        const sqlGetDepartmetsToGroupsPermissions = 'SELECT * FROM get_departments_to_groups_permissions'
 
-      const preparedSQL = new SQLQueryBuilder()            
-                                  .insertIgnore(tableUserPermissions)
-                                  .setFieldsforMultipleValues(fields)
-                                  .setMultipleValues(values)
-                                  .get()     
-      
-      const db = new DB()
-      await db.query(preparedSQL.sqlStatement, [preparedSQL.values])
+        let sqlStart = 'SELECT DISTINCT * FROM ('
+        let sqlBody = sqlGetUserPermissions 
+            sqlBody += ' UNION '
+            sqlBody += sqlGetDepartmentPermissions 
+            sqlBody += ' UNION '
+            sqlBody += sqlGetGroupPermissions
+            sqlBody += ' UNION '
+            sqlBody += sqlGetUsersToGroupsPermissions 
+            sqlBody += ' UNION '
+            sqlBody += sqlGetDepartmetsToGroupsPermissions
+        let sqlFinish = ') USER_PERMISSIONS'                
+            sqlFinish += ' ORDER BY Path, Action'
 
-      return setSuccess()
+        let sqlText = sqlSetVariables + sqlStart + sqlBody + sqlFinish
+
+        const queryResult = await new DB().query({
+            sqlStatement: sqlText,
+            values: []
+        })
+
+        if (queryResult.status !== 'ok') {
+            return queryResult
+        }
+
+        const data = {
+            permissions: queryResult.results[1]
+        }
+
+        return setSuccess(data)
     } catch (error) {
-      return setError(error)      
+        //console.log(error)
+        return setError(error)
     }
   }
 
-  async addDepartmentPermissions(fields, values) {
+  async getPermissionsWithActionsList() {
     try {
-      const tableDepartmentPermissions = process.env.TABLE_PERMISSION_DEPARTMENT
+        
+      return await new DB().query({
+          sqlStatement:'SELECT * FROM get_permission_definitions_with_actions_list'
+      })           
 
-      const preparedSQL = new SQLQueryBuilder()            
-                                  .insertIgnore(tableDepartmentPermissions)
-                                  .setFieldsforMultipleValues(fields)
-                                  .setMultipleValues(values)
-                                  .get()     
-      
-      const db = new DB()
-      await db.query(preparedSQL.sqlStatement, [preparedSQL.values])
-
-      return setSuccess()
     } catch (error) {
-      return setError(error)      
+        return setError(error)
     }
   }
 
-  async addGroupPermissions(fields, values) {
+  async getPermissionActions() {
     try {
-      const tableGroupPermissions = process.env.TABLE_PERMISSION_GROUP
-
-      const preparedSQL = new SQLQueryBuilder()            
-                                  .insertIgnore(tableGroupPermissions)
-                                  .setFieldsforMultipleValues(fields)
-                                  .setMultipleValues(values)
-                                  .get()     
       
-      const db = new DB()
-      await db.query(preparedSQL.sqlStatement, [preparedSQL.values])
+      return await new DB().query({
+        sqlStatement: 'SELECT * FROM get_permission_actions'
+      })
 
-      return setSuccess()
     } catch (error) {
-      return setError(error)      
+      return setError(error)
     }
-  }  
-
-  async addPermissionLinks(fields, values) {
-    try {
-      const tablePermissionLinks = process.env.TABLE_PERMISSION_LINKS
-
-      const preparedSQL = new SQLQueryBuilder()            
-                                  .insertIgnore(tablePermissionLinks)
-                                  .setFieldsforMultipleValues(fields)
-                                  .setMultipleValues(values)
-                                  .get()     
-      
-      const db = new DB()
-      await db.query(preparedSQL.sqlStatement, [preparedSQL.values])
-
-      return setSuccess()
-    } catch (error) {
-      return setError(error)      
-    }
-  }  
+  }
   
 }
 export default Permissions
